@@ -16,11 +16,19 @@ app.get('/api', (req, res) => {
         return res.status(500).json({ error: "Server configuration missing (AppID or Secret)" });
     }
 
-    try {
-        // 2 ghante (7200 seconds) ki validity wala fresh token banega
-        const token = generateToken04(Number(appId), userID, serverSecret, 7200, '');
-        return res.json({ token });
-    } catch (err) {
+    //  USKI JAGAH YEH NAYA CODE DAALO
+try {
+    // 🚀 Signaling permission jodne ke liye payload banaya
+    const tokenPayload = JSON.stringify({
+        room_id: "",
+        privilege: { 1: 1, 2: 1 },
+        stream_id_list: null
+    });
+
+    // Ab token ke andar tokenPayload pass kar diya
+    const token = generateToken04(Number(appId), userID, serverSecret, 7200, tokenPayload);
+    return res.json({ token });
+} catch (err) {
         return res.status(500).json({ error: err.message });
     }
 });
