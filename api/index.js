@@ -1,5 +1,5 @@
 const express = require('express');
-const crypto = require('crypto'); // ✅ Node.js ka built-in module (No install required)
+const crypto = require('crypto'); // ✅ Node.js ka built-in module
 const app = express();
 
 app.get('/api', (req, res) => {
@@ -16,7 +16,7 @@ app.get('/api', (req, res) => {
     }
 
     try {
-        // ✅ Built-in function call jo perfect '04AAAA...' token banayega
+        // ✅ Perfect V4 Token generate karega jo console tool aur app dono mein chalega
         const token = generateToken04(Number(appId), String(userID), serverSecret, 7200, '');
         return res.json({ token });
     } catch (err) {
@@ -24,15 +24,13 @@ app.get('/api', (req, res) => {
     }
 });
 
-// 🔥 Official Zego V4 Standalone Algorithm
+// 🔥 Standalone Cryptographic V4 Token Algorithm
 function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload) {
     if (!appId || !userId || !secret) return '';
 
     const createTime = Math.floor(Date.now() / 1000);
     const expireTime = createTime + effectiveTimeInSeconds;
-
-    // Nonce: Random 64-bit integer as string
-    const nonce = crypto.randomBytes(8).readBigInt64BE(0).toString();
+    const nonce = crypto.randomBytes(8).readUInt32BE(0);
 
     const tokenInfo = {
         app_id: Number(appId),
@@ -46,15 +44,15 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload)
     const tokenJson = JSON.stringify(tokenInfo);
     const iv = crypto.randomBytes(16);
     
-    // Zego Server Secret 32-byte ka hota hai, isliye AES-256-CBC perfectly kaam karega
-    const key = Buffer.from(secret, 'utf8'); 
-    const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+    // Asli Secret Hex-string se 16 bytes banata hai aur aes-128-cbc perfectly use karta hai
+    const key = Buffer.from(secret, 'hex'); 
+    const cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
     
     let encrypted = cipher.update(tokenJson, 'utf8', 'binary');
     encrypted += cipher.final('binary');
     const encryptedBuffer = Buffer.from(encrypted, 'binary');
 
-    // Official Binary Layout: ExpireTime (8 bytes) + IV (16 bytes) + Len (2 bytes) + EncryptedData
+    // 8-byte Expire Time layout jo shuruat mein '04AAAA...' banata hai
     const bExpireTime = Buffer.alloc(8);
     bExpireTime.writeBigInt64BE(BigInt(expireTime));
 
