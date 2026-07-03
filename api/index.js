@@ -30,44 +30,47 @@ const tokenPayload = '';
 // Zego Official Token V4 Algorithm
 function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload) {
     if (!appId || !userId || !secret) return '';
+
     const createTime = Math.floor(Date.now() / 1000);
     const expireTime = createTime + effectiveTimeInSeconds;
-    const nonce = crypto.randomBytes(8).readUInt32BE(0);
-    
+
+    // ✅ Nonce: Crypto random 64-bit integer
+    const nonce = crypto.randomBytes(8).readBigInt64BE(0);
+
     const tokenInfo = {
-        app_id: appId,
-        user_id: userId,
-        nonce: nonce,
+        app_id: Number(appId),
+        user_id: String(userId),
+        nonce: nonce.toString(),
         ctime: createTime,
         expire: expireTime,
         payload: payload || ''
     };
-    
+
     const tokenJson = JSON.stringify(tokenInfo);
     const iv = crypto.randomBytes(16);
-    const key = Buffer.from(secret, 'hex'); 
-    
+
+    // 🚨 KEY FIX: Zego V4 uses MD5 hash of the secret string as the encryption key
+    const key = crypto.createHash('md5').update(secret).digest();
+
     const cipher = crypto.createCipheriv('aes-128-cbc', key, iv);
     let encrypted = cipher.update(tokenJson, 'utf8', 'binary');
     encrypted += cipher.final('binary');
-    
+
     const encryptedBuffer = Buffer.from(encrypted, 'binary');
-    
-    // ✅ Wapas original format par le aaye (2 bytes version + 4 bytes expire time)
-    const bVersion = Buffer.from([48, 52]); // '04' version header
-    
-    const bExpireTime = Buffer.alloc(4);
-    bExpireTime.writeUInt32BE(expireTime);
+
+    // 🚨 BUFFER FIX 1: 64-bit (8 bytes) Expire Time (This creates the 'AAAA'!)
+    const bExpireTime = Buffer.alloc(8);
+    bExpireTime.writeBigInt64BE(BigInt(expireTime));
 
     // ✅ Encrypted buffer length allocation (2 bytes)
     const bEncryptedLen = Buffer.alloc(2);
     bEncryptedLen.writeUInt16BE(encryptedBuffer.length);
 
-    // ✅ Saare buffers ko wapas sahi sequence mein concat karo (Total 24 bytes header)
-    const finalBuffer = Buffer.concat([bVersion, bExpireTime, iv, bEncryptedLen, encryptedBuffer]);
-    
-    // ✅ Base64 string ke aage literal '04' jodo
+    // 🚨 BUFFER FIX 2: Isme SE bVersion KO POORI TARAH HATA DIYA HAI!
+    // Sequence must be: ExpireTime (8 bytes) + IV (16 bytes) + Len (2 bytes) + EncryptedContent
+    const finalBuffer = Buffer.concat([bExpireTime, iv, bEncryptedLen, encryptedBuffer]);
+
+    // ✅ Prefix literal '04' to the base64 string
     return '04' + finalBuffer.toString('base64');
 }
-
 module.exports = app;
