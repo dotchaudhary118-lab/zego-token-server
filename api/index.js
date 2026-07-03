@@ -21,7 +21,7 @@ try {
     // 🚀 Signaling permission jodne ke liye payload banaya
     const tokenPayload = JSON.stringify({
         room_id: "",
-        privilege: { 1: 1, 2: 1 },
+        privilege: {},
         stream_id_list: null
     });
 
