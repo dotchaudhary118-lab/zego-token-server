@@ -1,5 +1,5 @@
 const express = require('express');
-const { generateToken04 } = require('zego-server-assistant'); 
+const { generateToken04 } = require('zego-server-assistant');
 const app = express();
 
 app.get('/api', (req, res) => {
@@ -16,13 +16,15 @@ app.get('/api', (req, res) => {
     }
 
     try {
-        const appIDNum = Number(appId);
-        // ✅ Official Zego token generator
-        const token = generateToken04(appIDNum, String(userID), serverSecret, 7200, '');
+        const token = generateToken04(Number(appId), String(userID), serverSecret, 7200, '');
         return res.json({ token });
     } catch (err) {
         return res.status(500).json({ error: err.message });
     }
 });
 
-module.exports = app;
+// Render ke liye server start karna zaroori hai
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server running perfectly on port ${PORT}`);
+});
