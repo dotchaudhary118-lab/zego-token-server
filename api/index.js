@@ -18,14 +18,8 @@ app.get('/api', (req, res) => {
 
     //  USKI JAGAH YEH NAYA CODE DAALO
 try {
-    // 🚀 Signaling permission jodne ke liye payload banaya
-    const tokenPayload = JSON.stringify({
-        room_id: "",
-        privilege: {},
-        stream_id_list: null
-    });
-
-    // Ab token ke andar tokenPayload pass kar diya
+    // ✅ ISKO PASTE KARO
+const tokenPayload = ''; 
     const token = generateToken04(Number(appId), userID, serverSecret, 7200, tokenPayload);
     return res.json({ token });
 } catch (err) {
