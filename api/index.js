@@ -53,18 +53,20 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload)
     
     const encryptedBuffer = Buffer.from(encrypted, 'binary');
     
-    // ✅ 64-bit (8 bytes) Expire Time allocation
-    const bExpireTime = Buffer.alloc(8);
-    bExpireTime.writeBigInt64BE(BigInt(expireTime));
+    // ✅ Wapas original format par le aaye (2 bytes version + 4 bytes expire time)
+    const bVersion = Buffer.from([48, 52]); // '04' version header
+    
+    const bExpireTime = Buffer.alloc(4);
+    bExpireTime.writeUInt32BE(expireTime);
 
     // ✅ Encrypted buffer length allocation (2 bytes)
     const bEncryptedLen = Buffer.alloc(2);
     bEncryptedLen.writeUInt16BE(encryptedBuffer.length);
 
-    // ✅ Version (bVersion) hata kar baaki sab concat karo
-    const finalBuffer = Buffer.concat([bExpireTime, iv, bEncryptedLen, encryptedBuffer]);
+    // ✅ Saare buffers ko wapas sahi sequence mein concat karo (Total 24 bytes header)
+    const finalBuffer = Buffer.concat([bVersion, bExpireTime, iv, bEncryptedLen, encryptedBuffer]);
     
-    // ✅ Final output ke aage string format mein '04' jodo
+    // ✅ Base64 string ke aage literal '04' jodo
     return '04' + finalBuffer.toString('base64');
 }
 
