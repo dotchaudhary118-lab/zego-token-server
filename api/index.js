@@ -53,15 +53,19 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload)
     
     const encryptedBuffer = Buffer.from(encrypted, 'binary');
     
-    const bVersion = Buffer.from([48, 52]); // '04' version header
-    const bExpireTime = Buffer.alloc(4);
-    bExpireTime.writeUInt32BE(expireTime);
-    
+    // ✅ 64-bit (8 bytes) Expire Time allocation
+    const bExpireTime = Buffer.alloc(8);
+    bExpireTime.writeBigInt64BE(BigInt(expireTime));
+
+    // ✅ Encrypted buffer length allocation (2 bytes)
     const bEncryptedLen = Buffer.alloc(2);
     bEncryptedLen.writeUInt16BE(encryptedBuffer.length);
+
+    // ✅ Version (bVersion) hata kar baaki sab concat karo
+    const finalBuffer = Buffer.concat([bExpireTime, iv, bEncryptedLen, encryptedBuffer]);
     
-    const finalBuffer = Buffer.concat([bVersion, bExpireTime, iv, bEncryptedLen, encryptedBuffer]);
-    return finalBuffer.toString('base64');
+    // ✅ Final output ke aage string format mein '04' jodo
+    return '04' + finalBuffer.toString('base64');
 }
 
 module.exports = app;
