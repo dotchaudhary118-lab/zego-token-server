@@ -1,5 +1,5 @@
 const express = require('express');
-const { generateToken04 } = require('zego-server-assistant'); // ✅ Official import chalu
+const { generateToken04 } = require('zego-server-assistant'); // ✅ Sirf ye official import rahega
 const app = express();
 
 app.get('/api', (req, res) => {
@@ -20,7 +20,7 @@ app.get('/api', (req, res) => {
         const payload = ''; 
         const effectiveTimeInSeconds = 7200; 
 
-        // ✅ Yeh ab direct official package se chalega
+        // ✅ Direct official library use ho rahi hai
         const token = generateToken04(appIDNum, String(userID), serverSecret, effectiveTimeInSeconds, payload);
         
         return res.json({ token });
