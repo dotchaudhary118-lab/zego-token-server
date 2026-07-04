@@ -1,28 +1,30 @@
-const express = require('express');
-const { generateToken04 } = require('zego-server-assistant'); 
-const app = express(); // ✅ YAHAN '=' LAGA DIYA HAI
+const { generateToken04 } = require('zego-server-assistant');
 
-app.get('/api', (req, res) => {
+// ✅ Pure Native Vercel Function (Bina Express ke, Zero Crash Risk)
+module.exports = (req, res) => {
+    // CORS Headers taaki Flutter/Android app se direct connect ho sake
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
+
     const userID = req.query.userID;
     if (!userID) {
         return res.status(400).json({ error: "userID parameter is required" });
     }
 
-    const appId = process.env.ZEGO_APP_ID;
-    const serverSecret = process.env.ZEGO_SERVER_SECRET;
-
-    if (!appId || !serverSecret) {
-        return res.status(500).json({ error: "Server configuration missing" });
-    }
+    // 🔒 Teri Asli Zego Credentials (Fallback ke sath taaki kabhi crash na ho)
+    const appId = process.env.ZEGO_APP_ID || 1675712266;
+    const serverSecret = process.env.ZEGO_SERVER_SECRET || "7c52d2730840f5b2b111730e11f6e500";
 
     try {
         const appIDNum = Number(appId);
-        // ✅ Official Zego token generator
+        // ✅ Official SDK se verified token banega
         const token = generateToken04(appIDNum, String(userID), serverSecret, 7200, '');
-        return res.json({ token });
+        return res.status(200).json({ token: token });
     } catch (err) {
-        return res.status(500).json({ error: err.message });
+        return res.status(500).json({ error: "Token generation failed: " + err.message });
     }
-});
-
-module.exports = app;
+};
