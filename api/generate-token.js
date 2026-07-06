@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 
-// Random character generator
 function makeRandomIv() {
     const str = '0123456789abcdefghijklmnopqrstuvwxyz';
     let result = '';
@@ -10,7 +9,6 @@ function makeRandomIv() {
     return result;
 }
 
-// Main Zego Token04 Logic
 function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload = "") {
     if (!appId || typeof appId !== "number") throw new Error("Invalid appId");
     if (!secret || secret.length !== 32) throw new Error("ServerSecret must be a 32-character string");
@@ -19,7 +17,8 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload 
     const tokenInfo = {
         app_id: appId,
         user_id: userId,
-        nonce: makeRandomIv(),
+        // YAHIN PAR FIX HAI: Ab yeh completely ek random Number hai, String nahi!
+        nonce: Math.floor(Math.random() * 2147483647), 
         ctime: createTime,
         expire: createTime + effectiveTimeInSeconds,
         payload: payload
@@ -28,7 +27,6 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload 
     const plainText = JSON.stringify(tokenInfo);
     const iv = makeRandomIv();
     
-    // AES Encryption (Zego Standard)
     const cipher = crypto.createCipheriv('aes-256-cbc', secret, iv);
     let encryptBuf = cipher.update(plainText, 'utf8');
     encryptBuf = Buffer.concat([encryptBuf, cipher.final()]);
@@ -53,9 +51,7 @@ function generateToken04(appId, userId, secret, effectiveTimeInSeconds, payload 
     return "04" + buf.toString("base64");
 }
 
-// Vercel API Handler
 module.exports = (req, res) => {
-  // CORS Permissions
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   
@@ -63,7 +59,6 @@ module.exports = (req, res) => {
     return res.status(200).end();
   }
 
-  // Fetching values securely from Vercel Environment Variables
   const appID = parseInt(process.env.ZEGO_APP_ID); 
   const serverSecret = process.env.ZEGO_SERVER_SECRET; 
   const userId = req.query.userId || 'user_demo'; 
