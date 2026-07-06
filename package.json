@@ -1,7 +1,1 @@
-{
-  "name": "zego-token-server",
-  "version": "1.0.0",
-  "dependencies": {
-    "zego-server-assistant": "^1.0.1"
-  }
-}
+{}
